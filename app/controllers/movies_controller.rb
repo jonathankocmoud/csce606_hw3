@@ -11,11 +11,15 @@ class MoviesController < ApplicationController
   end
 
   def index
+    @sort_title = false
+    @sort_release_date = false
     @movies = Movie.all
     sort = params[:sort] # retrieve movie ID from URI route
     if sort == "title"
+      @sort_title = true
       @movies = Movie.all.order(:title)
     elsif sort == "release_date"
+      @sort_release_date = true
       @movies = Movie.all.order(:release_date)
     end
   end
