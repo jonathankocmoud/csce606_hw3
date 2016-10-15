@@ -11,16 +11,24 @@ class MoviesController < ApplicationController
   end
 
   def index
+    @all_ratings = Movie.get_ratings
+    ratings = params[:ratings]
+    if ratings == nil
+      @ratingKeys = @all_ratings
+    else
+      @ratingKeys = ratings.keys
+    end
     @sort_title = false
     @sort_release_date = false
-    @movies = Movie.all
     sort = params[:sort] # retrieve movie ID from URI route
     if sort == "title"
       @sort_title = true
-      @movies = Movie.all.order(:title)
+      @movies = Movie.where(rating: @ratingKeys).order(:title)
     elsif sort == "release_date"
       @sort_release_date = true
-      @movies = Movie.all.order(:release_date)
+      @movies = Movie.where(rating: @ratingKeys).order(:release_date)
+    else
+      @movies = Movie.where(rating: @ratingKeys)
     end
   end
 
