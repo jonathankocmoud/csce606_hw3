@@ -12,15 +12,42 @@ class MoviesController < ApplicationController
 
   def index
     @all_ratings = Movie.get_ratings
-    ratings = params[:ratings]
-    if ratings == nil
+    
+    changed_params = false
+    if params[:ratings] == nil
+      params[:ratings] = session[:ratings]
+      changed_params = true
+    end
+    if params[:ratings] == nil
+      @all_ratings.each do |key|
+        params[:ratings][key] = 1
+      end
+      changed_params = false
       @ratingKeys = @all_ratings
     else
-      @ratingKeys = ratings.keys
+      @ratingKeys = params[:ratings].keys
     end
+    
+    new_params = request.session.to_hash.deep_dup
+    params.each do |key, array|
+      if new_params[key] != array
+        new_params[key] = array
+        session[key] = array
+        changed_params = true
+      end
+    end
+    if changed_params
+      new_params.delete("_csrf_token") 
+      new_params.delete("session_id")
+      new_params.delete("flash")
+      new_params.delete("flashes")
+      redirect_to movies_path(new_params)
+    end
+    
     @sort_title = false
     @sort_release_date = false
-    sort = params[:sort] # retrieve movie ID from URI route
+    
+    sort = new_params["sort"] # retrieve movie ID from URI route
     if sort == "title"
       @sort_title = true
       @movies = Movie.where(rating: @ratingKeys).order(:title)
